@@ -2,6 +2,35 @@
     <head>
         <title>Youtube Duration Remover</title>
         <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            }
+
+            body {
+                width: 300px;
+                padding: 20px;
+                background: #ffffff;
+                border-radius: 12px;
+                color: #333333;
+                line-height: 1.5;
+            }
+
+            h1 {
+                font-size: 1.4rem;
+                margin-bottom: 12px;
+                color: #1a1a1a;
+                font-weight: 600;
+            }
+
+            p {
+                font-size: 0.9rem;
+                margin-bottom: 16px;
+                color: #666666;
+            }
+
             .switch {
                 position: relative;
                 display: inline-block;
@@ -22,9 +51,10 @@
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background-color: #ccc;
+                background-color: #e0e0e0;
                 transition: .2s;
                 border-radius: 25px;
+                box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
             }
     
             .slider:before {
@@ -37,6 +67,7 @@
                 background-color: white;
                 transition: .2s;
                 border-radius: 50%;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.15);
             }
     
             input:checked + .slider {
@@ -46,16 +77,32 @@
             input:checked + .slider:before {
                 transform: translateX(25px);
             }
+
+            .container {
+                background: #f8f9fa;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
         </style>
     </head>
     <body>
-        <h1>Youtube Duration Remover</h1>
-        <p>Toggle extension on/off</p>
-        
-        <label class="switch">
-            <input type="checkbox" id="ydrToggle">
-            <span class="slider"></span>
-        </label>
+        <div class="container">
+            <h1>Youtube Duration Remover</h1>
+
+            <p>Browse Youtube without spoilers for video length.</p>
+
+            <p>Make sure to disable video previews at the bottom of the "Playback and performance" tab in your Youtube settings.</p>
+
+            <p>Recommended to be used in conjunction with hyde, a separate extension which removes the progress bar on Youtube videos.</p>
+
+            <p>Toggle extension on/off:</p>
+            
+            <label class="switch">
+                <input type="checkbox" id="ydrToggle">
+                <span class="slider"></span>
+            </label>
+        </div>
         <script src="popup.js" defer></script>
     </body>
 </html>

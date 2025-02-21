@@ -39,7 +39,7 @@ function startScript() {
 }
 
 function stopScript() {
-    console.log("YDR turned off: restoring youtube duration previews.");
+    console.log("YDR turned off: Restoring youtube duration previews.");
 
     if (observer) {
         observer.disconnect();
