@@ -1,2 +1,2 @@
 # youtubeDurationRemover
-Removes video duration from Youtube video preview thumbnails
+Chrome extension to remove video duration from Youtube video preview thumbnails
