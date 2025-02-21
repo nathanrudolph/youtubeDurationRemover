@@ -1,3 +1,5 @@
+const cssId = "ydrStyling";
+
 // Turn on extension if state has not been set
 chrome.storage.sync.get(['ydrIsEnabled'], function(result) {
     if (result.ydrIsEnabled === undefined) {
@@ -9,12 +11,12 @@ chrome.storage.sync.get(['ydrIsEnabled'], function(result) {
 // Event listener for extension on/off state
 chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'sync' && changes.ydrIsEnabled) {
-        console.log("content.js saw the update to ydrIsEnabled.");
         handleExtensionState(changes.ydrIsEnabled.newValue);
     }
 });
 
 function handleExtensionState(isEnabled) {
+    toggleStyling(isEnabled);
     if (isEnabled) {
         startScript();
     } else {
@@ -24,9 +26,7 @@ function handleExtensionState(isEnabled) {
 
 // Duration remover script
 function startScript() {
-    sendReloadMessage();
-
-    console.log("Running startScript");
+    console.log("YDR turned on: Removing youtube duration previews.");
 
     removeDurationLabels();
 
@@ -39,7 +39,7 @@ function startScript() {
 }
 
 function stopScript() {
-    console.log("Running stopScript");
+    console.log("YDR turned off: restoring youtube duration previews.");
 
     if (observer) {
         observer.disconnect();
@@ -65,6 +65,22 @@ const observer = new MutationObserver((mutations) => {
 
 // Tell service worker to reload tabs
 function sendReloadMessage() {
-    console.log("Sending message to reload tabs.");
     chrome.runtime.sendMessage({ action: "reloadYoutubeTabs" });
+}
+
+function toggleStyling(enable) {
+    if (enable) {
+        if (!document.getElementById(cssId)) {
+            const link = document.createElement("link");
+            link.id = cssId;
+            link.rel = "stylesheet";
+            link.href = chrome.runtime.getURL("styles.css");
+            document.head.appendChild(link);
+        }
+    } else {
+        const existingStyle = document.getElementById(cssId);
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+    }
 }

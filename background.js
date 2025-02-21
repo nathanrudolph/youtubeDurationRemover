@@ -1,5 +1,5 @@
 chrome.runtime.onMessage.addListener((message, sender) => {
-    console.log("Service worker caught reloadYoutubeTabs message.");
+    console.log("Reloading Youtube tabs.");
     if (message.action === "reloadYoutubeTabs") {
         // reload all youtube tabs
         chrome.tabs.query({url: "*://www.youtube.com/*"}, (tabs) => {
