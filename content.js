@@ -8,10 +8,22 @@ chrome.storage.sync.get(['ydrIsEnabled'], function(result) {
     }
 })
 
-// Event listener for extension on/off state
+// Event listener for extension on/off state updates
 chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'sync' && changes.ydrIsEnabled) {
+        logContent('Switch toggled, new value: ', changes.ydrIsEnabled.newValue );
         handleExtensionState(changes.ydrIsEnabled.newValue);
+    }
+});
+
+// Event listener from service worker to trigger check if user switches to a youtube tab
+chrome.runtime.onMessage.addListener((message, sender) => {
+    if (message.action === "tabStateUpdated") {
+        logContent("Message received to update tab because it was out of sync with global YDR state.");
+        // trigger remover script
+        chrome.storage.sync.get(['ydrIsEnabled'], function(result) {
+            handleExtensionState(result.ydrIsEnabled);
+        });
     }
 });
 
@@ -26,7 +38,7 @@ function handleExtensionState(isEnabled) {
 
 // Duration remover script
 function startScript() {
-    console.log("YDR turned on: Removing youtube duration previews.");
+    logContent("YDR turned ON: Removing youtube duration previews on current tab.");
 
     removeDurationLabels();
 
@@ -39,7 +51,7 @@ function startScript() {
 }
 
 function stopScript() {
-    console.log("YDR turned off: Restoring youtube duration previews.");
+    logContent("YDR turned OFF: Restoring youtube duration previews on current tab.");
 
     if (observer) {
         observer.disconnect();
@@ -65,7 +77,7 @@ const observer = new MutationObserver((mutations) => {
 
 // Tell service worker to reload tabs
 function sendReloadMessage() {
-    chrome.runtime.sendMessage({ action: "reloadYoutubeTabs" });
+    chrome.runtime.sendMessage({ action: "reloadCurrentYoutubeTab" });
 }
 
 function toggleStyling(enable) {
@@ -83,4 +95,8 @@ function toggleStyling(enable) {
             existingStyle.remove();
         }
     }
+}
+
+function logContent(...args) {
+    logToServiceWorker('Content', ...args);
 }
