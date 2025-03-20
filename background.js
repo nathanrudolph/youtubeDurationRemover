@@ -1,3 +1,8 @@
+// set initial state of extension on install
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.storage.sync.set({ydrIsEnabled: true});
+})
+
 chrome.runtime.onMessage.addListener((message, sender) => {
     logBackground("Reloading Youtube tabs.");
     if (message.action === "reloadYoutubeTabs") {

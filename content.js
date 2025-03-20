@@ -1,13 +1,5 @@
 const cssId = "ydrStyling";
 
-// Turn on extension if state has not been set
-chrome.storage.sync.get(['ydrIsEnabled'], function(result) {
-    if (result.ydrIsEnabled === undefined) {
-        chrome.storage.sync.set({ydrIsEnabled: true});
-        startScript();
-    }
-})
-
 // Event listener for extension on/off state
 chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'sync' && changes.ydrIsEnabled) {

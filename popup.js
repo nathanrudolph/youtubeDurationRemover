@@ -8,11 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // check switch state
     chrome.storage.sync.get(['ydrIsEnabled'], function(result) {
-        // if undefined in storage, turn on extension by default
-        if (result.ydrIsEnabled === undefined) {
-            chrome.storage.sync.set({ydrIsEnabled: true});
-        }
-
         // set switch state
         toggle.checked = result.ydrIsEnabled ?? true;
     });
