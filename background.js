@@ -1,5 +1,5 @@
 chrome.runtime.onMessage.addListener((message, sender) => {
-    console.log("Reloading Youtube tabs.");
+    logBackground("Reloading Youtube tabs.");
     if (message.action === "reloadYoutubeTabs") {
         // reload all youtube tabs
         chrome.tabs.query({url: "*://www.youtube.com/*"}, (tabs) => {
@@ -9,5 +9,17 @@ chrome.runtime.onMessage.addListener((message, sender) => {
                 }
             });
         });
+    }
+})
+
+// normalize logs from background service worker
+function logBackground(...args) {
+    console.log('YDR_LOG', '[Background]', ...args);
+}
+
+// feed log stream from scripts into service worker log
+chrome.runtime.onMessage.addListener((message) => {
+    if (message.type === 'LOG') {
+        console.log('YDR_LOG', `[${message.source}]`, ...message.args);
     }
 })
