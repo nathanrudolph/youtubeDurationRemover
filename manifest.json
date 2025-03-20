@@ -1,11 +1,11 @@
 {
     "manifest_version": 3,
     "name": "Youtube Duration Remover",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "author": "Nathan Rudolph",
     "description": "Removes video duration from Youtube video preview thumbnails.",
     "permissions": [
-        "scripting", 
+        "scripting",
         "storage",
         "tabs"
     ],
@@ -26,12 +26,12 @@
     "background": {
         "service_worker": "background.js"
     },
-    "content_scripts": [
-    {
-        "js": ["content.js"],
-        "matches": [
-            "*://*.youtube.com/*"
-        ]
-    }
-  ]
+    "content_scripts": [{
+        "js": ["log-utils.js", "content.js"],
+        "matches": ["*://*.youtube.com/*"]
+    }],
+    "web_accessible_resources": [{
+        "resources": ["log-utils.js"],
+        "matches": ["*://*.youtube.com/*"]
+    }]
 }

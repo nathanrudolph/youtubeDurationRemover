@@ -26,7 +26,7 @@ function handleExtensionState(isEnabled) {
 
 // Duration remover script
 function startScript() {
-    console.log("YDR turned on: Removing youtube duration previews.");
+    logContent("YDR turned on: Removing youtube duration previews.");
 
     removeDurationLabels();
 
@@ -39,7 +39,7 @@ function startScript() {
 }
 
 function stopScript() {
-    console.log("YDR turned off: Restoring youtube duration previews.");
+    logContent("YDR turned off: Restoring youtube duration previews.");
 
     if (observer) {
         observer.disconnect();
@@ -83,4 +83,8 @@ function toggleStyling(enable) {
             existingStyle.remove();
         }
     }
+}
+
+function logContent(...args) {
+    logToServiceWorker('Content', ...args);
 }

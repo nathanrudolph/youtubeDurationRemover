@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const toggle = document.getElementById('ydrToggle');
 
     if (!toggle) {
-        console.error ("YDR toggle switch element not found.");
+        logPopup("YDR toggle switch element not found.");
         return;
     }
 
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // add event listener for switch
     toggle.addEventListener('change', function() {
-        console.log("Event listener in popup.js saw the switch flip.");
+        logPopup("Event listener in popup.js saw the switch flip.");
 
         const newState = toggle.checked;
 
@@ -27,8 +27,12 @@ document.addEventListener('DOMContentLoaded', function() {
         chrome.storage.sync.get(["ydrIsEnabled"], (data) => {
             if (data.ydrIsEnabled !== newState) {
                 chrome.storage.sync.set({ ydrIsEnabled: newState });
-                console.log("popup.js updated the ydrIsEnabled state.");
+                logPopup("popup.js updated the ydrIsEnabled state.");
             }
         });
     });
 });
+
+function logPopup(...args) {
+    logToServiceWorker('Popup', ...args);
+}
