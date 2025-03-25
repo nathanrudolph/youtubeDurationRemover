@@ -106,6 +106,12 @@ function removeDurationLabels() {
     hoverDurationElements.forEach(container => {
         container.style.display = "none";
     });
+
+    // remove progress bar in thumbnail
+    const progressDurationElements = document.querySelectorAll('ytd-thumbnail-overlay-resume-playback-renderer');
+    progressDurationElements.forEach(container => {
+        container.style.display = "none"; // hide to be able to restore later
+    });
 }
 
 function restoreDurationLabels() {
@@ -121,6 +127,12 @@ function restoreDurationLabels() {
     const hoverDurationElements = document.querySelectorAll('yt-inline-player-controls');
     hoverDurationElements.forEach(container => {
         container.style.display = "";
+    });
+
+    // restore progress bar in thumbnail
+    const progressDurationElements = document.querySelectorAll('ytd-thumbnail-overlay-resume-playback-renderer');
+    progressDurationElements.forEach(container => {
+        container.style.display = ""; // hide to be able to restore later
     });
 }
 
