@@ -79,7 +79,7 @@ function isYdrOn() {
     
     // check if no elements are found
     if (containers.length === 0) {
-        logContent("YDR is enabled: No duration elements found.");
+        logContent("DOM inspected: No duration elements found (YDR is enabled).");
         return true;
     }
     // Check if elements are hidden
@@ -87,27 +87,40 @@ function isYdrOn() {
         window.getComputedStyle(container).display === "none"
     );
     if (allHidden) {
-        logContent("YDR is enabled: Duration elements are hidden.");
+        logContent("DOM inspected: Duration elements are hidden (YDR is enabled).");
         return true;
     }
-    logContent("YDR is disabled: Duration elements are visible.");
+    logContent("DOM inspected: Duration elements are visible (YDR is disabled).");
     return false;
 }
 
 function removeDurationLabels() {
+    // remove static thumbnail durations
     const overlayContainers = document.querySelectorAll('ytd-thumbnail-overlay-time-status-renderer');
     overlayContainers.forEach(container => {
       container.style.display = "none"; // hide to be able to restore later
+    });
+
+    // remove hover preview duration
+    const hoverDurationElements = document.querySelectorAll('yt-inline-player-controls');
+    hoverDurationElements.forEach(container => {
+        container.style.display = "none";
     });
 }
 
 function restoreDurationLabels() {
     logContent("Restoring YouTube duration previews.");
 
-    // unhide existing elements
+    // unhide static elements
     const overlayContainers = document.querySelectorAll('ytd-thumbnail-overlay-time-status-renderer');
     overlayContainers.forEach(container => {
         container.style.display = ""; // reset to default style
+    });
+
+    // restore hover preview
+    const hoverDurationElements = document.querySelectorAll('yt-inline-player-controls');
+    hoverDurationElements.forEach(container => {
+        container.style.display = "";
     });
 }
 
