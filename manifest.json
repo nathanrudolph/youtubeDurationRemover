@@ -28,7 +28,8 @@
     },
     "content_scripts": [{
         "js": ["log-utils.js", "content.js"],
-        "matches": ["*://*.youtube.com/*"]
+        "matches": ["*://*.youtube.com/*"],
+        "run_at": "document_idle"
     }],
     "web_accessible_resources": [{
         "resources": ["log-utils.js"],
