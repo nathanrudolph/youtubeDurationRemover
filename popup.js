@@ -14,15 +14,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // add event listener for switch
     toggle.addEventListener('change', function() {
-        logPopup("Event listener in popup.js saw the switch flip.");
-
         const newState = toggle.checked;
 
         // check storage for value, update if different
         chrome.storage.sync.get(["ydrIsEnabled"], (data) => {
             if (data.ydrIsEnabled !== newState) {
                 chrome.storage.sync.set({ ydrIsEnabled: newState });
-                logPopup("popup.js updated the ydrIsEnabled state.");
+                logPopup("Switch flipped, updated the ydrIsEnabled state to:", newState);
             }
         });
     });

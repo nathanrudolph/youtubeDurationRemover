@@ -1,8 +1,4 @@
 function logToServiceWorker(sourceOfLog, ...args) {
-
-    // Log locally for convenience
-    console.log(`[${sourceOfLog}]`, ...args);
-
     // Forward to service worker
     chrome.runtime.sendMessage({
         type: 'LOG',
