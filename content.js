@@ -1,10 +1,13 @@
 let observer = new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
         if (mutation.addedNodes.length || mutation.type === "childList") {
+            hidePlayerControls();
             removeDurationLabels();
         }
     });
 });
+
+let isObserving = false;
 
 // Event listener for extension on/off state
 chrome.storage.onChanged.addListener((changes, namespace) => {
@@ -52,24 +55,31 @@ function handleExtensionState(isEnabled) {
 function startScript() {
     logContent("Removing youtube duration previews.");
 
-    toggleStyling(true);
     removeDurationLabels();
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: false,
-        characterData: false
-    });
+    hidePlayerControls();
+
+    if (!isObserving)
+    {
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: false,
+            characterData: false
+        });
+        isObserving = true;
+    }
 }
 
 function stopScript() {
     logContent("Restoring youtube duration previews.");
 
-    if (observer) {
+    if (isObserving) {
         observer.disconnect();
+        isObserving = false;
     }
-    toggleStyling(false);
-    restoreDurationLabels(); 
+
+    restoreDurationLabels();
+    restorePlayerControls();
 }
 
 function isYdrOn() {
@@ -132,30 +142,37 @@ function restoreDurationLabels() {
     // restore progress bar in thumbnail
     const progressDurationElements = document.querySelectorAll('ytd-thumbnail-overlay-resume-playback-renderer');
     progressDurationElements.forEach(container => {
-        container.style.display = ""; // hide to be able to restore later
+        container.style.display = "";
     });
 }
 
-function toggleStyling(enable) {
-    const cssId = "ydr-css";
-    if (enable) {
-        if (!document.getElementById(cssId)) {
-            const link = document.createElement("link");
-            link.id = cssId;
-            link.rel = "stylesheet";
-            link.href = chrome.runtime.getURL("styles.css");
-            document.head.appendChild(link);
-        }
-    } else {
-        const existingStyle = document.getElementById(cssId);
-        if (existingStyle) {
-            existingStyle.remove();
-            logContent("CSS removed.");
-        }
+function hidePlayerControls() {
+    try {
+        document.getElementsByClassName('ytp-chrome-top')[0].style.visibility = 'hidden';
+        document.getElementsByClassName('ytp-chrome-controls')[0].style.visibility = 'hidden';
+        document.getElementsByClassName('ytp-gradient-top')[0].style.visibility = 'hidden';
+        document.getElementsByClassName('ytp-gradient-bottom')[0].style.visibility = 'hidden';
+        document.getElementsByClassName('ytp-progress-bar')[0].style.visibility = 'hidden';
+        document.getElementsByClassName('ytp-progress-bar-container')[0].style.visibility = 'hidden';    
+    } catch (error) {
+        logContent("Player control elements have not finishing rendering.");
     }
+    
 }
 
-
+function restorePlayerControls() {
+    try {
+        document.getElementsByClassName('ytp-chrome-top')[0].style.visibility = 'visible';
+        document.getElementsByClassName('ytp-chrome-controls')[0].style.visibility = 'visible';
+        document.getElementsByClassName('ytp-gradient-top')[0].style.visibility = 'visible';
+        document.getElementsByClassName('ytp-gradient-bottom')[0].style.visibility = 'visible';
+        document.getElementsByClassName('ytp-progress-bar')[0].style.visibility = 'visible';
+        document.getElementsByClassName('ytp-progress-bar-container')[0].style.visibility = 'visible';
+    } catch (error) {
+        logContent("Player control elements have not finishing rendering.");
+    }
+    
+}
 
 // logging functionality
 function logContent(...args) {
