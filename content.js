@@ -52,7 +52,6 @@ function handleExtensionState(isEnabled) {
 function startScript() {
     logContent("Removing youtube duration previews.");
 
-    toggleStyling(true);
     removeDurationLabels();
     observer.observe(document.body, {
         childList: true,
@@ -68,7 +67,7 @@ function stopScript() {
     if (observer) {
         observer.disconnect();
     }
-    toggleStyling(false);
+
     restoreDurationLabels(); 
 }
 
@@ -132,27 +131,8 @@ function restoreDurationLabels() {
     // restore progress bar in thumbnail
     const progressDurationElements = document.querySelectorAll('ytd-thumbnail-overlay-resume-playback-renderer');
     progressDurationElements.forEach(container => {
-        container.style.display = ""; // hide to be able to restore later
+        container.style.display = "";
     });
-}
-
-function toggleStyling(enable) {
-    const cssId = "ydr-css";
-    if (enable) {
-        if (!document.getElementById(cssId)) {
-            const link = document.createElement("link");
-            link.id = cssId;
-            link.rel = "stylesheet";
-            link.href = chrome.runtime.getURL("styles.css");
-            document.head.appendChild(link);
-        }
-    } else {
-        const existingStyle = document.getElementById(cssId);
-        if (existingStyle) {
-            existingStyle.remove();
-            logContent("CSS removed.");
-        }
-    }
 }
 
 
