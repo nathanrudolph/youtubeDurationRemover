@@ -1,10 +1,13 @@
 let observer = new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
         if (mutation.addedNodes.length || mutation.type === "childList") {
+            hidePlayerControls();
             removeDurationLabels();
         }
     });
 });
+
+let isObserving = false;
 
 // Event listener for extension on/off state
 chrome.storage.onChanged.addListener((changes, namespace) => {
@@ -53,22 +56,30 @@ function startScript() {
     logContent("Removing youtube duration previews.");
 
     removeDurationLabels();
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: false,
-        characterData: false
-    });
+    hidePlayerControls();
+
+    if (!isObserving)
+    {
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: false,
+            characterData: false
+        });
+        isObserving = true;
+    }
 }
 
 function stopScript() {
     logContent("Restoring youtube duration previews.");
 
-    if (observer) {
+    if (isObserving) {
         observer.disconnect();
+        isObserving = false;
     }
 
-    restoreDurationLabels(); 
+    restoreDurationLabels();
+    restorePlayerControls();
 }
 
 function isYdrOn() {
@@ -135,7 +146,33 @@ function restoreDurationLabels() {
     });
 }
 
+function hidePlayerControls() {
+    try {
+        document.getElementsByClassName('ytp-chrome-top')[0].style.visibility = 'hidden';
+        document.getElementsByClassName('ytp-chrome-controls')[0].style.visibility = 'hidden';
+        document.getElementsByClassName('ytp-gradient-top')[0].style.visibility = 'hidden';
+        document.getElementsByClassName('ytp-gradient-bottom')[0].style.visibility = 'hidden';
+        document.getElementsByClassName('ytp-progress-bar')[0].style.visibility = 'hidden';
+        document.getElementsByClassName('ytp-progress-bar-container')[0].style.visibility = 'hidden';    
+    } catch (error) {
+        logContent("Player control elements have not finishing rendering.");
+    }
+    
+}
 
+function restorePlayerControls() {
+    try {
+        document.getElementsByClassName('ytp-chrome-top')[0].style.visibility = 'visible';
+        document.getElementsByClassName('ytp-chrome-controls')[0].style.visibility = 'visible';
+        document.getElementsByClassName('ytp-gradient-top')[0].style.visibility = 'visible';
+        document.getElementsByClassName('ytp-gradient-bottom')[0].style.visibility = 'visible';
+        document.getElementsByClassName('ytp-progress-bar')[0].style.visibility = 'visible';
+        document.getElementsByClassName('ytp-progress-bar-container')[0].style.visibility = 'visible';
+    } catch (error) {
+        logContent("Player control elements have not finishing rendering.");
+    }
+    
+}
 
 // logging functionality
 function logContent(...args) {
