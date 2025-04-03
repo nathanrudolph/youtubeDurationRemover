@@ -1,6 +1,7 @@
 // set initial state of extension on install
 chrome.runtime.onInstalled.addListener(() => {
     chrome.storage.sync.set({ydrIsEnabled: true});
+    chrome.storage.sync.set({hidePlayer: false});
 })
 
 // tab listeners to check for: switched to youtube tab, loading completes

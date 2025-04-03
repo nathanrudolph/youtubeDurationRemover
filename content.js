@@ -2,7 +2,8 @@
 const durationElements = [
     'ytd-thumbnail-overlay-time-status-renderer', //static thumbnail video duration
     'yt-inline-player-controls', // video duration in hover preview
-    'ytd-thumbnail-overlay-resume-playback-renderer' // thumbnail progress bar
+    'ytd-thumbnail-overlay-resume-playback-renderer', // thumbnail progress bar
+    'ytp-time-display' // mini player video duration
 ];
 
 // DOM element selectors for video player controls
@@ -14,21 +15,29 @@ const playerElements = [
     'ytp-progress-bar-container'
 ];
 
+// set up page mutation observer
 let observer = new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
         if (mutation.addedNodes.length || mutation.type === "childList") {
-            hidePlayerControls();
+            handlePlayerControls(hidePlayer);
             removeDurationLabels();
         }
     });
 });
-
 let isObserving = false;
 
 // Event listener for extension on/off state
 chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'sync' && changes.ydrIsEnabled) {
         handleExtensionState(changes.ydrIsEnabled.newValue);
+    }
+});
+
+// event listener for player control on/off state
+chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (namespace === 'sync' && changes.hidePlayer) {
+        hidePlayer = changes.hidePlayer.newValue;
+        handlePlayerControls(hidePlayer);
     }
 });
 
@@ -45,9 +54,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // run script on initial injection
 const isEnabled = chrome.storage.sync.get(['ydrIsEnabled']);
+let hidePlayer = chrome.storage.sync.get(['hidePlayer']);
 if (isEnabled) {
     startScript();
 }
+
+
+
+
+
+
+
+
+
+
 
 function handleExtensionState(isEnabled) {
     const ydrIsOn = isYdrOn();
@@ -72,7 +92,7 @@ function startScript() {
     logContent("Removing youtube duration previews.");
 
     removeDurationLabels();
-    hidePlayerControls();
+    handlePlayerControls(hidePlayer);
 
     if (!isObserving)
     {
@@ -95,7 +115,16 @@ function stopScript() {
     }
 
     restoreDurationLabels();
-    restorePlayerControls();
+    handlePlayerControls(hidePlayer);
+}
+
+function handlePlayerControls(hidePlayer) {
+    if (hidePlayer) {
+        hidePlayerControls();
+    }
+    else {
+        restorePlayerControls();
+    }
 }
 
 function isYdrOn() {
