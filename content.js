@@ -1,18 +1,41 @@
+// DOM element selectors for thumbnail duration
+const durationElements = [
+    'ytd-thumbnail-overlay-time-status-renderer', //static thumbnail video duration
+    'yt-inline-player-controls', // video duration in hover preview
+    'ytd-thumbnail-overlay-resume-playback-renderer', // thumbnail progress bar
+];
+
+// DOM element selectors for video player controls
+const playerElements = [
+    'ytp-time-wrapper',
+    'ytp-chapter-container',
+    'ytp-progress-bar',
+    'ytp-progress-bar-container'
+];
+
+// set up page mutation observer
 let observer = new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
         if (mutation.addedNodes.length || mutation.type === "childList") {
-            hidePlayerControls();
+            handlePlayerControls(hidePlayer);
             removeDurationLabels();
         }
     });
 });
-
 let isObserving = false;
 
 // Event listener for extension on/off state
 chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'sync' && changes.ydrIsEnabled) {
         handleExtensionState(changes.ydrIsEnabled.newValue);
+    }
+});
+
+// event listener for player control on/off state
+chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (namespace === 'sync' && changes.hidePlayer) {
+        hidePlayer = changes.hidePlayer.newValue;
+        handlePlayerControls(hidePlayer);
     }
 });
 
@@ -29,9 +52,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // run script on initial injection
 const isEnabled = chrome.storage.sync.get(['ydrIsEnabled']);
+let hidePlayer = chrome.storage.sync.get(['hidePlayer']);
 if (isEnabled) {
     startScript();
 }
+
+
+
+
+
+
+
+
+
+
 
 function handleExtensionState(isEnabled) {
     const ydrIsOn = isYdrOn();
@@ -56,7 +90,7 @@ function startScript() {
     logContent("Removing youtube duration previews.");
 
     removeDurationLabels();
-    hidePlayerControls();
+    handlePlayerControls(hidePlayer);
 
     if (!isObserving)
     {
@@ -79,7 +113,16 @@ function stopScript() {
     }
 
     restoreDurationLabels();
-    restorePlayerControls();
+    handlePlayerControls(hidePlayer);
+}
+
+function handlePlayerControls(hidePlayer) {
+    if (hidePlayer) {
+        hidePlayerControls();
+    }
+    else {
+        restorePlayerControls();
+    }
 }
 
 function isYdrOn() {
@@ -105,71 +148,47 @@ function isYdrOn() {
 }
 
 function removeDurationLabels() {
-    // remove static thumbnail durations
-    const overlayContainers = document.querySelectorAll('ytd-thumbnail-overlay-time-status-renderer');
-    overlayContainers.forEach(container => {
-      container.style.display = "none"; // hide to be able to restore later
-    });
+    logContent("Hiding thumbnail video durations.");
 
-    // remove hover preview duration
-    const hoverDurationElements = document.querySelectorAll('yt-inline-player-controls');
-    hoverDurationElements.forEach(container => {
-        container.style.display = "none";
-    });
-
-    // remove progress bar in thumbnail
-    const progressDurationElements = document.querySelectorAll('ytd-thumbnail-overlay-resume-playback-renderer');
-    progressDurationElements.forEach(container => {
-        container.style.display = "none"; // hide to be able to restore later
+    durationElements.forEach(element => {
+        const containers = document.querySelectorAll(element);
+        containers.forEach(container => {
+            container.style.display = "none"; // hide elements
+        });
     });
 }
 
 function restoreDurationLabels() {
-    logContent("Restoring YouTube duration previews.");
+    logContent("Restoring thumbnail video durations.");
 
-    // unhide static elements
-    const overlayContainers = document.querySelectorAll('ytd-thumbnail-overlay-time-status-renderer');
-    overlayContainers.forEach(container => {
-        container.style.display = ""; // reset to default style
-    });
-
-    // restore hover preview
-    const hoverDurationElements = document.querySelectorAll('yt-inline-player-controls');
-    hoverDurationElements.forEach(container => {
-        container.style.display = "";
-    });
-
-    // restore progress bar in thumbnail
-    const progressDurationElements = document.querySelectorAll('ytd-thumbnail-overlay-resume-playback-renderer');
-    progressDurationElements.forEach(container => {
-        container.style.display = "";
+    durationElements.forEach(element => {
+        const containers = document.querySelectorAll(element);
+        containers.forEach(container => {
+            container.style.display = ""; // restore default styling for elements
+        });
     });
 }
 
 function hidePlayerControls() {
     try {
-        document.getElementsByClassName('ytp-chrome-top')[0].style.visibility = 'hidden';
-        document.getElementsByClassName('ytp-chrome-controls')[0].style.visibility = 'hidden';
-        document.getElementsByClassName('ytp-gradient-top')[0].style.visibility = 'hidden';
-        document.getElementsByClassName('ytp-gradient-bottom')[0].style.visibility = 'hidden';
-        document.getElementsByClassName('ytp-progress-bar')[0].style.visibility = 'hidden';
-        document.getElementsByClassName('ytp-progress-bar-container')[0].style.visibility = 'hidden';    
+        playerElements.forEach(element => {
+            document.getElementsByClassName(element)[0].style.visibility = 'hidden';
+        });
+        logContent("Hiding video player controls.");
     } catch (error) {
-        logContent("Player control elements have not finishing rendering.");
+        logContent("Player control elements have not finishing rendering, will try hiding them again once rendered.");
     }
     
 }
 
 function restorePlayerControls() {
     try {
-        document.getElementsByClassName('ytp-chrome-top')[0].style.visibility = 'visible';
-        document.getElementsByClassName('ytp-chrome-controls')[0].style.visibility = 'visible';
-        document.getElementsByClassName('ytp-gradient-top')[0].style.visibility = 'visible';
-        document.getElementsByClassName('ytp-gradient-bottom')[0].style.visibility = 'visible';
-        document.getElementsByClassName('ytp-progress-bar')[0].style.visibility = 'visible';
-        document.getElementsByClassName('ytp-progress-bar-container')[0].style.visibility = 'visible';
+        playerElements.forEach(element => {
+            document.getElementsByClassName(element)[0].style.visibility = 'visible';
+        });
+        logContent("Restoring video player controls.");
     } catch (error) {
-        logContent("Player control elements have not finishing rendering.");
+        logContent("Player control elements have not finishing rendering, will try restoring them again once rendered.");
     }
     
 }

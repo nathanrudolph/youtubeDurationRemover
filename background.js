@@ -1,7 +1,19 @@
 // set initial state of extension on install
 chrome.runtime.onInstalled.addListener(() => {
     chrome.storage.sync.set({ydrIsEnabled: true});
+    chrome.storage.sync.set({hidePlayer: false});
 })
+
+// event listener for command macro from user
+chrome.commands.onCommand.addListener((command) => {
+    if (command === "hidePlayerCommand") {
+      chrome.storage.sync.get("hidePlayer", (data) => {
+        const newValue = !data.hidePlayer;
+        chrome.storage.sync.set({ hidePlayer: newValue });
+      });
+      logPopup("User toggled macro for hidePlayer, updated state:", newValue);
+    }
+});
 
 // tab listeners to check for: switched to youtube tab, loading completes
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
