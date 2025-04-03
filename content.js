@@ -3,14 +3,12 @@ const durationElements = [
     'ytd-thumbnail-overlay-time-status-renderer', //static thumbnail video duration
     'yt-inline-player-controls', // video duration in hover preview
     'ytd-thumbnail-overlay-resume-playback-renderer', // thumbnail progress bar
-    'ytp-time-display' // mini player video duration
 ];
 
 // DOM element selectors for video player controls
 const playerElements = [
-    'ytp-chrome-controls',
-    'ytp-gradient-top',
-    'ytp-gradient-bottom',
+    'ytp-time-wrapper',
+    'ytp-chapter-container',
     'ytp-progress-bar',
     'ytp-progress-bar-container'
 ];
