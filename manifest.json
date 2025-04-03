@@ -31,6 +31,15 @@
     "background": {
         "service_worker": "background.js"
     },
+    "commands": {
+        "hidePlayerCommand": {
+            "suggested_key": {
+                "default": "Ctrl+M",
+                "mac": "Command+M"
+            },
+            "description": "Hide/show video player controls"
+        }
+    },
     "content_scripts": [{
         "js": ["log-utils.js", "content.js"],
         "matches": ["*://*.youtube.com/*"],
