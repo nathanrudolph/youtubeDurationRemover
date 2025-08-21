@@ -1,8 +1,21 @@
 // DOM element selectors for thumbnail duration
 const durationElements = [
+    // NEW YOUTUBE STRUCTURE - Primary selectors
+    '.badge-shape-wiz__text', // Duration text elements (like "6:18")
+    'badge-shape-wiz__text', // Alternative selector
+    
+    // NEW YOUTUBE STRUCTURE - Progress bar selectors
+    '.ytThumbnailOverlayProgressBarHostWatchedProgressBarSegment', // Thumbnail progress bar
+    'ytThumbnailOverlayProgressBarHostWatchedProgressBarSegment', // Alternative selector
+    
+    // Legacy selectors (keeping for compatibility)
     'ytd-thumbnail-overlay-time-status-renderer', //static thumbnail video duration
     'yt-inline-player-controls', // video duration in hover preview
     'ytd-thumbnail-overlay-resume-playback-renderer', // thumbnail progress bar
+    
+    // Video page duration elements (when watching a video)
+    'ytp-time-duration', // video duration in player
+    'ytp-tooltip-duration', // duration in tooltips
 ];
 
 // DOM element selectors for video player controls
@@ -12,6 +25,9 @@ const playerElements = [
     'ytp-progress-bar',
     'ytp-progress-bar-container'
 ];
+
+// Global state variables
+let hidePlayer = false;
 
 // set up page mutation observer
 let observer = new MutationObserver((mutations) => {
@@ -51,11 +67,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 })
 
 // run script on initial injection
-const isEnabled = chrome.storage.sync.get(['ydrIsEnabled']);
-let hidePlayer = chrome.storage.sync.get(['hidePlayer']);
-if (isEnabled) {
-    startScript();
-}
+chrome.storage.sync.get(['ydrIsEnabled', 'hidePlayer'], function(result) {
+    const isEnabled = result.ydrIsEnabled ?? true;
+    hidePlayer = result.hidePlayer ?? false;
+    
+    if (isEnabled) {
+        startScript();
+    }
+});
 
 
 
@@ -89,8 +108,29 @@ function handleExtensionState(isEnabled) {
 function startScript() {
     logContent("Removing youtube duration previews.");
 
-    removeDurationLabels();
-    handlePlayerControls(hidePlayer);
+    // Check if page is ready
+    if (document.readyState === 'loading') {
+        logContent("Page still loading, waiting for DOM to be ready...");
+        document.addEventListener('DOMContentLoaded', () => {
+            removeDurationLabels();
+            handlePlayerControls(hidePlayer);
+        });
+    } else {
+        removeDurationLabels();
+        handlePlayerControls(hidePlayer);
+    }
+
+    // Also wait a bit longer for dynamic content to load
+    setTimeout(() => {
+        logContent("Running delayed duration removal for dynamic content...");
+        removeDurationLabels();
+    }, 2000);
+    
+    // Wait even longer for thumbnails to load
+    setTimeout(() => {
+        logContent("Running final duration removal for thumbnails...");
+        removeDurationLabels();
+    }, 5000);
 
     if (!isObserving)
     {
@@ -128,15 +168,20 @@ function handlePlayerControls(hidePlayer) {
 function isYdrOn() {
     logContent("Checking YDR state on current tab.");
     
-    const containers = document.querySelectorAll('ytd-thumbnail-overlay-time-status-renderer');
+    // Check for thumbnail duration elements (new YouTube structure)
+    const thumbnailContainers = document.querySelectorAll('.badge-shape-wiz__text');
+    // Check for video page duration elements
+    const videoContainers = document.querySelectorAll('ytp-time-duration');
     
-    // check if no elements are found
-    if (containers.length === 0) {
-        logContent("DOM inspected: No duration elements found (YDR is enabled).");
-        return true;
+    const allContainers = [...thumbnailContainers, ...videoContainers];
+    
+    // check if no elements are found - this could mean page hasn't loaded yet
+    if (allContainers.length === 0) {
+        logContent("DOM inspected: No duration elements found (page may still be loading).");
+        return false; // Assume YDR is not active if no elements found
     }
     // Check if elements are hidden
-    const allHidden = [...containers].every(container => 
+    const allHidden = allContainers.every(container => 
         window.getComputedStyle(container).display === "none"
     );
     if (allHidden) {
@@ -152,9 +197,11 @@ function removeDurationLabels() {
 
     durationElements.forEach(element => {
         const containers = document.querySelectorAll(element);
-        containers.forEach(container => {
-            container.style.display = "none"; // hide elements
-        });
+        if (containers.length > 0) {
+            containers.forEach(container => {
+                container.style.display = "none"; // hide elements
+            });
+        }
     });
 }
 
@@ -163,9 +210,11 @@ function restoreDurationLabels() {
 
     durationElements.forEach(element => {
         const containers = document.querySelectorAll(element);
-        containers.forEach(container => {
-            container.style.display = ""; // restore default styling for elements
-        });
+        if (containers.length > 0) {
+            containers.forEach(container => {
+                container.style.display = ""; // restore default styling for elements
+            });
+        }
     });
 }
 
