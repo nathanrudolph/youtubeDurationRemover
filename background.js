@@ -10,7 +10,7 @@ chrome.commands.onCommand.addListener((command) => {
       chrome.storage.sync.get("hidePlayer", (data) => {
         const newValue = !data.hidePlayer;
         chrome.storage.sync.set({ hidePlayer: newValue });
-        logPopup("User toggled macro for hidePlayer, updated state:", newValue);
+        logBackground("User toggled macro for hidePlayer, updated state:", newValue);
       });
     }
 });
