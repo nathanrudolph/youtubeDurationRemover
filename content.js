@@ -29,14 +29,36 @@ const playerElements = [
 // Global state variables
 let hidePlayer = false;
 
+// Debounce function to limit execution frequency
+let debounceTimer;
+function debounce(func, delay) {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(func, delay);
+}
+
 // set up page mutation observer
 let observer = new MutationObserver((mutations) => {
-    mutations.forEach(mutation => {
-        if (mutation.addedNodes.length || mutation.type === "childList") {
+    // Check if any added nodes contain our target elements
+    const hasRelevantChanges = mutations.some(mutation => {
+        return Array.from(mutation.addedNodes).some(node => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                return node.querySelector && (
+                    node.querySelector('.badge-shape-wiz__text') ||
+                    node.querySelector('.ytThumbnailOverlayProgressBarHostWatchedProgressBarSegment') ||
+                    node.querySelector('.style-scope.ytd-thumbnail-overlay-resume-playback-renderer') ||
+                    node.matches && node.matches('.badge-shape-wiz__text, .ytThumbnailOverlayProgressBarHostWatchedProgressBarSegment, .style-scope.ytd-thumbnail-overlay-resume-playback-renderer')
+                );
+            }
+            return false;
+        });
+    });
+    
+    if (hasRelevantChanges) {
+        debounce(() => {
             handlePlayerControls(hidePlayer);
             removeDurationLabels();
-        }
-    });
+        }, 100); // 100ms debounce
+    }
 });
 let isObserving = false;
 
@@ -120,26 +142,43 @@ function startScript() {
         handlePlayerControls(hidePlayer);
     }
 
-    // Also wait a bit longer for dynamic content to load
+    // Single timeout for initial load (redundant with observer but kept for safety)
     setTimeout(() => {
-        logContent("Running delayed duration removal for dynamic content...");
         removeDurationLabels();
-    }, 2000);
-    
-    // Wait even longer for thumbnails to load
-    setTimeout(() => {
-        logContent("Running final duration removal for thumbnails...");
-        removeDurationLabels();
-    }, 5000);
+    }, 1000);
 
     if (!isObserving)
     {
+        // Observe specific containers where thumbnails appear
+        const targetContainers = [
+            '#content', // Main content area
+            '#primary', // Primary content
+            '#secondary', // Secondary content (sidebar)
+            'ytd-rich-grid-renderer', // Homepage grid
+            'ytd-search', // Search results
+            'ytd-watch-flexy' // Video page
+        ];
+        
+        targetContainers.forEach(selector => {
+            const container = document.querySelector(selector);
+            if (container) {
+                observer.observe(container, {
+                    childList: true,
+                    subtree: true,
+                    attributes: false,
+                    characterData: false
+                });
+            }
+        });
+        
+        // Also observe body for new containers that might be added
         observer.observe(document.body, {
             childList: true,
-            subtree: true,
+            subtree: false, // Don't observe subtree of body
             attributes: false,
             characterData: false
         });
+        
         isObserving = true;
     }
 }
@@ -192,30 +231,37 @@ function isYdrOn() {
     return false;
 }
 
+
+
+// CSS-based hiding for better performance
+let styleElement = null;
+
 function removeDurationLabels() {
     logContent("Hiding thumbnail video durations.");
 
-    durationElements.forEach(element => {
-        const containers = document.querySelectorAll(element);
-        if (containers.length > 0) {
-            containers.forEach(container => {
-                container.style.display = "none"; // hide elements
-            });
-        }
-    });
+    // Use CSS injection for better performance
+    if (!styleElement) {
+        styleElement = document.createElement('style');
+        styleElement.id = 'youtube-duration-remover-styles';
+        styleElement.textContent = `
+            .badge-shape-wiz__text,
+            .ytThumbnailOverlayProgressBarHostWatchedProgressBarSegment,
+            .style-scope.ytd-thumbnail-overlay-resume-playback-renderer {
+                display: none !important;
+            }
+        `;
+        document.head.appendChild(styleElement);
+    }
 }
 
 function restoreDurationLabels() {
     logContent("Restoring thumbnail video durations.");
 
-    durationElements.forEach(element => {
-        const containers = document.querySelectorAll(element);
-        if (containers.length > 0) {
-            containers.forEach(container => {
-                container.style.display = ""; // restore default styling for elements
-            });
-        }
-    });
+    // Remove the CSS style element
+    if (styleElement) {
+        styleElement.remove();
+        styleElement = null;
+    }
 }
 
 function hidePlayerControls() {
