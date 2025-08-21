@@ -13,6 +13,9 @@ const playerElements = [
     'ytp-progress-bar-container'
 ];
 
+// Global state variables
+let hidePlayer = false;
+
 // set up page mutation observer
 let observer = new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
@@ -51,11 +54,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 })
 
 // run script on initial injection
-const isEnabled = chrome.storage.sync.get(['ydrIsEnabled']);
-let hidePlayer = chrome.storage.sync.get(['hidePlayer']);
-if (isEnabled) {
-    startScript();
-}
+chrome.storage.sync.get(['ydrIsEnabled', 'hidePlayer'], function(result) {
+    const isEnabled = result.ydrIsEnabled ?? true;
+    hidePlayer = result.hidePlayer ?? true;
+    
+    if (isEnabled) {
+        startScript();
+    }
+});
 
 
 
